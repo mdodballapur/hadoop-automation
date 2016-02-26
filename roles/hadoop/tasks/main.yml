@@ -1,0 +1,15 @@
+    - name: prepare for Hadoop cluster creation
+      copy: src=files/blueprints/{{blueprint|default("hdp_blueprint")}} dest=/tmp/{{hdp_cluster}}_ambari_blueprint
+      connection: local
+      run_once: true
+
+    - name: create blueprint host mapping
+      template: src=templates/host_mapping.j2 dest=/tmp/{{hdp_cluster}}_ambari_host_mapping
+      connection: local
+      run_once: true
+
+    - name: Initiate Hadoop installation
+      template: src=templates/create_hadoop_cluster.j2 dest=/tmp/{{hdp_cluster}}_ambari_create_hadoop_cluster.sh mode="a+x"
+      connection: local
+      run_once: true
+

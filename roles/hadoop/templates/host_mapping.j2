@@ -1,0 +1,27 @@
+{
+  "blueprint" : "default-blueprint",
+  "default_password" : "simple",
+  "host_groups" :[
+    {
+      "name" : "{{ namenode }}", 
+      "hosts" : [         
+        {
+          "fqdn" : "{{hdp_cluster}}-{{ namenode }}.hadoopexample.com"
+        }]
+    },
+{% for node in groups[hdp_cluster] %}
+{% if not loop.first %}
+{% set workercount2 = loop.index - 2 %}
+{% set workercount1 = loop.index - 1 %}
+    {
+      "name" : "{{ datanode }}_{{workercount1}}", 
+      "hosts" : [         
+        {
+          "fqdn" : "{{hdp_cluster}}-{{ datanode }}{{workercount2}}.hadoopexample.com"
+        }]
+    }{% if not loop.last %},{% endif %}
+{% endif %}
+{% endfor %}
+
+  ]
+}

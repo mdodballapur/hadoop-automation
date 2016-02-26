@@ -1,0 +1,5 @@
+  - name: Install java
+    yum:
+      pkg: java-{{ java_version | default('1.7.0') }}
+      state: installed
+      disablerepo: "{{ disable_repo | default('') }}"

@@ -1,0 +1,22 @@
+  - name: create /etc/hosts file for hadoop
+    template: src=templates/fqdn.j2 dest=/etc/hosts mode=0644
+
+  - name: Install ambari repo
+    copy: src=files/repo/ambari.repo-{{ ambari_version | default ('1.6.1')}} dest=/etc/yum.repos.d/ambari.repo
+
+  - name: Install ambari-server
+    yum: name=ambari-server state=installed update_cache=yes disablerepo="{{ disable_repo | default('') }}"
+    when: "'ambari_hosts' in group_names"
+
+  - name: setup ambari-server
+    shell: ambari-server setup -s -j /usr/lib/jvm/jre
+    when: "'ambari_hosts' in group_names"
+
+  - name: setup ambari-agent
+    yum: name=ambari-agent state=installed disablerepo="{{ disable_repo | default('') }}"
+
+  - name: setup ambari-agent master
+    replace: dest=/etc/ambari-agent/conf/ambari-agent.ini regexp="hostname=.*" replace="hostname={{ambari_server|default(default_ambari_server)}}"
+
+  - name: start ambari-agent
+    service: name=ambari-agent state=started

@@ -1,0 +1,34 @@
+#!/bin/bash
+{% for host in groups[hdp_cluster] %}
+  {% if (host == ambari_server|default('')) or
+        ((host == default_ambari_server) and
+           (not ambari_server|default('')))
+  %}
+
+ambari_server_ip={{hostvars[host].ansible_ssh_host}}
+#since hadoop cluster name cannot have '-' replace it with '_'
+hadoop_cluster_name=`echo {{hdp_cluster}} | sed 's/-/_/g'`
+  {% endif %}
+{% endfor %}
+
+{% set curl_POST = "curl -u admin:admin -i -H 'X-Requested-By: ambari' -X POST" %}
+{% set curl_GET = "curl -u admin:admin -i -H 'X-Requested-By: ambari' -X GET" %}
+
+#Post blueprints to cluster 
+{{curl_POST}} -d @{{hdp_cluster}}_ambari_blueprint http://$ambari_server_ip:8080/api/v1/blueprints/default-blueprint
+
+#sleep for a few seconds for request to propogate
+sleep 20
+
+#registered hosts
+{{curl_GET}} http://$ambari_server_ip:8080/api/v1/hosts
+
+echo "sleep for 180 seconds"
+sleep 180
+
+#post hostmapping 
+{{curl_POST}} -d @{{hdp_cluster}}_ambari_host_mapping http://$ambari_server_ip:8080/api/v1/clusters/$hadoop_cluster_name
+
+
+#track progress
+for c in {1..1000};do {{curl_GET}} http://$ambari_server_ip:8080/api/v1/clusters/$hadoop_cluster_name/requests/1 | grep progress && date && sleep 5;done;

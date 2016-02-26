@@ -1,0 +1,31 @@
+- name: Instantiate Hortonworks Hadoop cluster
+  hosts: "{{ hdp_cluster }}"
+  become_user: vagrant
+  become_method: sudo
+  gather_facts: False
+  vars:
+    default_ambari_server: "{{hdp_cluster}}-namenode"
+
+  roles:
+    - role: java
+      java_version: "1.7.0"
+
+    - role: ambari
+      ambari_version: "1.6.1"
+      ambari_server: "{{hdp_cluster}}-namenode"
+
+    - role: hadoop
+      blueprint: "hdp_3datanodes"
+      namenode: "namenode"
+      datanode: "datanode"
+
+  post_tasks:
+    - name: reboot cluster so that installation of packages takes effect
+      shell: shutdown -r now 
+      async: 0
+      poll: 0 
+      ignore_errors: True
+
+    - name: wait for the nodes to comeup
+      wait_for: host={{ ansible_ssh_host }} port=22 state=started delay=5 timeout=100
+      connection: local

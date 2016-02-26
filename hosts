@@ -1,0 +1,13 @@
+[ambari_hosts]
+hortonworks-hdp-namenode
+
+[ambari_agents]
+hortonworks-hdp-datanode[0:3]
+
+
+[hortonworks-hdp]
+hortonworks-hdp-namenode ansible_ssh_host=192.168.33.10
+hortonworks-hdp-datanode0 ansible_ssh_host=192.168.33.11
+hortonworks-hdp-datanode1 ansible_ssh_host=192.168.33.12
+hortonworks-hdp-datanode2 ansible_ssh_host=192.168.33.13
+
